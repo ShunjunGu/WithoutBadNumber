@@ -1,0 +1,53 @@
+{
+  "_comment": "MCP骚扰电话查询服务配置示例文件",
+  "platforms": {
+    "Cherry Studio": {
+      "local": {
+        "name": "骚扰电话查询（本地）",
+        "command": "node",
+        "args": ["/Users/gushunjun/Documents/WithoutBadNumber/index.js"]
+      },
+      "npm": {
+        "name": "骚扰电话查询",
+        "command": "npx -y mcp-saorao-phone",
+        "args": []
+      }
+    },
+    "Claude Desktop": {
+      "local": {
+        "saorao-phone-local": {
+          "command": "node",
+          "args": ["/Users/gushunjun/Documents/WithoutBadNumber/index.js"]
+        }
+      },
+      "npm": {
+        "saorao-phone": {
+          "command": "npx",
+          "args": ["-y", "mcp-saorao-phone"]
+        }
+      }
+    },
+    "Cursor": {
+      "local": {
+        "saorao-phone": {
+          "command": "node",
+          "args": ["/Users/gushunjun/Documents/WithoutBadNumber/index.js"]
+        }
+      }
+    },
+    "Windsurf": {
+      "local": {
+        "saorao-phone": {
+          "command": "node",
+          "args": ["/Users/gushunjun/Documents/WithoutBadNumber/index.js"]
+        }
+      }
+    }
+  },
+  "config_paths": {
+    "Claude Desktop (macOS)": "~/Library/Application Support/Claude/claude_desktop_config.json",
+    "Claude Desktop (Windows)": "%APPDATA%/Claude/claude_desktop_config.json",
+    "Cursor": "项目根目录下的 .cursor/mcp.json 或全局配置",
+    "Windsurf": "项目根目录下的 mcp_config.json"
+  }
+}

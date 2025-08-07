@@ -1,0 +1,31 @@
+{
+  "_comment": "npx配置版本 - 使用npx运行MCP骚扰电话查询服务",
+  "npx_config": {
+    "mcpServers": {
+      "saorao-phone": {
+        "command": "npx",
+        "args": ["-y", "mcp-saorao-phone"]
+      }
+    }
+  },
+  "local_config": {
+    "mcpServers": {
+      "saorao-phone": {
+        "command": "node",
+        "args": ["/Users/gushunjun/Documents/WithoutBadNumber/index.js"]
+      }
+    }
+  },
+  "usage_comparison": {
+    "npx": {
+      "优点": ["无需本地安装", "自动使用最新版本", "适合生产环境"],
+      "缺点": ["需要网络连接", "启动稍慢", "依赖npm包发布"],
+      "适用场景": "最终用户使用"
+    },
+    "local": {
+      "优点": ["启动快速", "无需网络", "开发调试方便"],
+      "缺点": ["需要本地文件", "路径依赖", "版本固定"],
+      "适用场景": "开发和测试"
+    }
+  }
+}

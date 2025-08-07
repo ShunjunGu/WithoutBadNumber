@@ -1,0 +1,40 @@
+{
+  "_comment": "本地开发配置 - 使用本地路径运行MCP服务",
+  "configurations": {
+    "local_path": {
+      "mcpServers": {
+        "saorao-phone": {
+          "command": "node",
+          "args": ["/Users/gushunjun/Documents/WithoutBadNumber/index.js"]
+        }
+      }
+    },
+    "local_npm_link": {
+      "mcpServers": {
+        "saorao-phone": {
+          "command": "npx",
+          "args": ["mcp-saorao-phone"]
+        }
+      },
+      "setup_instructions": [
+        "在项目目录运行: npm link",
+        "然后就可以使用 npx mcp-saorao-phone"
+      ]
+    },
+    "local_npm_run": {
+      "mcpServers": {
+        "saorao-phone": {
+          "command": "npm",
+          "args": ["--prefix", "/Users/gushunjun/Documents/WithoutBadNumber", "start"]
+        }
+      }
+    }
+  },
+  "explanation": {
+    "npx_vs_local": {
+      "npx": "从npm仓库下载并运行已发布的包",
+      "node直接运行": "使用本地文件系统中的脚本",
+      "npm link": "将本地项目链接为全局包，模拟npx行为"
+    }
+  }
+}
