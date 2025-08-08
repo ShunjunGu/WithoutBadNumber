@@ -9,6 +9,7 @@
 - 🛡️ 查看各大安全软件的标记结果（360手机卫士、搜狗号码通、百度手机卫士等）
 - 🛠️ 提供独立工具 `query_phone_address` 用于仅查询号码归属地
 - 🌐 提供 `query_ip_location` 工具用于查询IP地址归属地
+- 🆔 提供 `query_id_card` 工具用于查询身份证信息（年龄、性别、出生地等）
 - 🚀 支持npx直接运行，无需安装
 
 ## 安装和使用
@@ -83,12 +84,13 @@ npx -y mcp-saorao-phone
 
 ### 提供的工具
 
-本服务提供四个MCP工具：
+本服务提供五个MCP工具：
 
 1. **query_phone_number**：主工具，可通过 `apiType` 参数查询骚扰电话或手机号码归属地
 2. **query_phone_address**：专用工具，仅查询手机号码归属地（内部调用360 API）
 3. **url_to_ip**：将网址转换为 IP 地址，使用 ping 命令解析域名
 4. **query_ip_location**：查询IP地址归属地信息（省市、运营商等）
+5. **query_id_card**：根据18位中国身份证号码查询年龄、性别、出生地等信息
 
 ### 查询参数
 

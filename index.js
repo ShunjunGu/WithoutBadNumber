@@ -17,7 +17,7 @@ class SaoraoPhoneServer {
     this.server = new Server(
       {
         name: 'mcp-saorao-phone',
-        version: '1.5.0',
+        version: '1.6.0',
       },
       {
         capabilities: {
@@ -94,6 +94,20 @@ class SaoraoPhoneServer {
             },
             required: ['ipAddress']
           }
+        },
+        {
+          name: 'query_id_card',
+          description: '根据中国身份证号码查询年龄、性别、出生地等信息',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              idCard: {
+                type: 'string',
+                description: '18位中国居民身份证号码，例如 110101199003070018'
+              }
+            },
+            required: ['idCard']
+          }
         }
       ],
     }));
@@ -130,6 +144,46 @@ class SaoraoPhoneServer {
               {
                 type: 'text',
                 text: `IP归属地查询结果：\n\n${JSON.stringify(result, null, 2)}`,
+              },
+            ],
+          };
+        } catch (error) {
+          throw new Error(`查询失败: ${error.message}`);
+        }
+      }
+
+      if (toolName === 'query_id_card') {
+        const { idCard } = request.params.arguments;
+        if (!/^\d{17}[0-9Xx]$/.test(idCard)) {
+          throw new Error('请提供有效的18位身份证号码');
+        }
+        try {
+          const response = await fetch(`https://zj.v.api.aa1.cn/api/sfz/?sfz=${idCard}`, {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'mcp-saorao-phone/1.0.0',
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status}`);
+          }
+          let data;
+          try {
+            data = await response.json();
+          } catch (_) {
+            const text = await response.text();
+            data = { raw: text };
+          }
+          const result = {
+            查询号码: idCard,
+            数据: data,
+            查询来源: 'api.aa1.cn 身份证校验信息API'
+          };
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `身份证信息查询结果：\n\n${JSON.stringify(result, null, 2)}`,
               },
             ],
           };

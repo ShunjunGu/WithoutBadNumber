@@ -1,6 +1,6 @@
 {
   "name": "mcp-saorao-phone",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "MCP server for Chinese harassing phone number lookup API",
   "main": "index.js",
   "type": "module",
