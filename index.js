@@ -104,6 +104,16 @@ class SaoraoPhoneServer {
               idCard: {
                 type: 'string',
                 description: '18位中国居民身份证号码，例如 110101199003070018'
+              },
+              appKey: {
+                type: 'string',
+                description: 'NowAPI提供的appkey，可选，默认为演示key 10003',
+                default: '10003'
+              },
+              sign: {
+                type: 'string',
+                description: 'NowAPI提供的sign，可选，默认为演示sign b59bc3ef6191eb9f747dd4e83c99f2a4',
+                default: 'b59bc3ef6191eb9f747dd4e83c99f2a4'
               }
             },
             required: ['idCard']
@@ -153,12 +163,13 @@ class SaoraoPhoneServer {
       }
 
       if (toolName === 'query_id_card') {
-        const { idCard } = request.params.arguments;
+        const { idCard, appKey = '10003', sign = 'b59bc3ef6191eb9f747dd4e83c99f2a4' } = request.params.arguments;
         if (!/^\d{17}[0-9Xx]$/.test(idCard)) {
           throw new Error('请提供有效的18位身份证号码');
         }
         try {
-          const response = await fetch(`https://zj.v.api.aa1.cn/api/sfz/?sfz=${idCard}`, {
+          const url = `https://sapi.k780.com/?app=idcard.get&idcard=${idCard}&appkey=${appKey}&sign=${sign}&format=json`;
+          const response = await fetch(url, {
             method: 'GET',
             headers: {
               'User-Agent': 'mcp-saorao-phone/1.0.0',
@@ -167,17 +178,20 @@ class SaoraoPhoneServer {
           if (!response.ok) {
             throw new Error(`API请求失败: ${response.status}`);
           }
-          let data;
-          try {
-            data = await response.json();
-          } catch (_) {
-            const text = await response.text();
-            data = { raw: text };
+
+          const data = await response.json();
+          if (data.success !== '1') {
+            throw new Error(data.msg || '查询失败');
           }
           const result = {
             查询号码: idCard,
-            数据: data,
-            查询来源: 'api.aa1.cn 身份证校验信息API'
+            查询状态: data.result.status,
+            出生日期: data.result.born,
+            性别: data.result.sex,
+            归属地: data.result.att,
+            邮编: data.result.postno,
+            区号: data.result.areano,
+            查询来源: 'NowAPI 身份证信息查询'
           };
           return {
             content: [

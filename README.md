@@ -81,6 +81,7 @@ npx -y mcp-saorao-phone
 1. **骚扰电话查询**：使用笒鬼鬼API（https://api.cenguigui.cn/api/saorao/）
 2. **手机号码归属地查询**：使用360手机号码归属地API（https://cx.shouji.360.cn/phonearea.php?number=手机号）
 3. **IP地址归属地查询**：使用太平洋网络IP查询API（http://whois.pconline.com.cn/ipJson.jsp）
+4. **身份证信息查询**：使用NowAPI身份证信息查询API（https://sapi.k780.com/）
 
 ### 提供的工具
 
@@ -108,6 +109,11 @@ npx -y mcp-saorao-phone
 
 #### query_ip_location 工具
 - `ipAddress`：要查询的IPv4地址，例如 `8.8.8.8`
+
+#### query_id_card 工具
+- `idCard`：18位中国居民身份证号码，例如 `110101199003070018`
+- `appKey`（可选）：NowAPI提供的appkey，默认为 `10003`
+- `sign`（可选）：NowAPI提供的sign，默认为 `b59bc3ef6191eb9f747dd4e83c99f2a4`
 
 ### 返回结果
 
