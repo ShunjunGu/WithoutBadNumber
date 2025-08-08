@@ -8,6 +8,7 @@
 - 📍 获取号码归属地信息（省份、城市、运营商）
 - 🛡️ 查看各大安全软件的标记结果（360手机卫士、搜狗号码通、百度手机卫士等）
 - 🛠️ 提供独立工具 `query_phone_address` 用于仅查询号码归属地
+- 🌐 提供 `query_ip_location` 工具用于查询IP地址归属地
 - 🚀 支持npx直接运行，无需安装
 
 ## 安装和使用
@@ -78,13 +79,16 @@ npx -y mcp-saorao-phone
 
 1. **骚扰电话查询**：使用笒鬼鬼API（https://api.cenguigui.cn/api/saorao/）
 2. **手机号码归属地查询**：使用360手机号码归属地API（https://cx.shouji.360.cn/phonearea.php?number=手机号）
+3. **IP地址归属地查询**：使用太平洋网络IP查询API（http://whois.pconline.com.cn/ipJson.jsp）
 
 ### 提供的工具
 
-本服务提供两个MCP工具：
+本服务提供四个MCP工具：
 
 1. **query_phone_number**：主工具，可通过 `apiType` 参数查询骚扰电话或手机号码归属地
 2. **query_phone_address**：专用工具，仅查询手机号码归属地（内部调用360 API）
+3. **url_to_ip**：将网址转换为 IP 地址，使用 ping 命令解析域名
+4. **query_ip_location**：查询IP地址归属地信息（省市、运营商等）
 
 ### 查询参数
 
@@ -96,6 +100,12 @@ npx -y mcp-saorao-phone
 
 #### query_phone_address 工具
 - `phoneNumber`：要查询的中国手机号码（11位数字）
+
+#### url_to_ip 工具
+- `url`：要解析的域名，例如 `www.example.com`
+
+#### query_ip_location 工具
+- `ipAddress`：要查询的IPv4地址，例如 `8.8.8.8`
 
 ### 返回结果
 
@@ -160,7 +170,7 @@ npm publish
 ## 注意事项
 
 - 本服务仅支持查询中国手机号码（11位数字）
-- API服务由笒鬼鬼及360提供，使用时请遵守各自的服务条款
+- API服务由笒鬼鬼、360及太平洋网络提供，使用时请遵守各自的服务条款
 - 查询结果仅供参考，最终判断请以实际情况为准
 
 ## 配置验证和故障排除
