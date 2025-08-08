@@ -7,13 +7,17 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import fetch from 'node-fetch';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
 
 class SaoraoPhoneServer {
   constructor() {
     this.server = new Server(
       {
         name: 'mcp-saorao-phone',
-        version: '1.2.0',
+        version: '1.5.0',
       },
       {
         capabilities: {
@@ -62,12 +66,123 @@ class SaoraoPhoneServer {
             },
             required: ['phoneNumber']
           }
+        },
+        {
+          name: 'url_to_ip',
+          description: '将网址(URL)转换为IP地址，使用ping命令解析域名',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              url: {
+                type: 'string',
+                description: '要转换的网址，例如 www.example.com'
+              }
+            },
+            required: ['url']
+          }
+        },
+        {
+          name: 'query_ip_location',
+          description: '查询IP地址归属地信息（省、市、运营商等）',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              ipAddress: {
+                type: 'string',
+                description: '要查询的IPv4地址，例如 8.8.8.8'
+              }
+            },
+            required: ['ipAddress']
+          }
         }
       ],
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const toolName = request.params.name;
+      if (toolName === 'query_ip_location') {
+        const { ipAddress } = request.params.arguments;
+        if (!/^(?:\d{1,3}\.){3}\d{1,3}$/.test(ipAddress)) {
+          throw new Error('请提供有效的IPv4地址');
+        }
+        try {
+          const response = await fetch(`http://whois.pconline.com.cn/ipJson.jsp?json=true&ip=${ipAddress}`, {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'mcp-saorao-phone/1.0.0',
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status}`);
+          }
+          const data = await response.json();
+          if (!data || !data.pro) {
+            throw new Error('查询失败');
+          }
+          const result = {
+            IP地址: data.ip,
+            归属地: `${data.pro} ${data.city}`,
+            运营商: data.addr,
+            查询来源: 'whois.pconline.com.cn IP归属地API'
+          };
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `IP归属地查询结果：\n\n${JSON.stringify(result, null, 2)}`,
+              },
+            ],
+          };
+        } catch (error) {
+          throw new Error(`查询失败: ${error.message}`);
+        }
+      }
+
+      if (toolName === 'url_to_ip') {
+        const { url } = request.params.arguments;
+        if (!url) {
+          throw new Error('请提供有效的网址');
+        }
+        
+        // 清理URL，移除协议前缀和路径
+        let host = url.replace(/^(https?:\/\/)?/, '').split('/')[0];
+        
+        try {
+          let pingCommand;
+          if (process.platform === 'win32') {
+            pingCommand = `ping -n 1 ${host}`;
+          } else {
+            pingCommand = `ping -c 1 ${host}`;
+          }
+          
+          const { stdout } = await execPromise(pingCommand);
+          
+          // 从ping输出中提取IP地址
+          const ipMatch = stdout.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
+          if (!ipMatch) {
+            throw new Error(`无法解析域名 ${host} 的IP地址`);
+          }
+          
+          const ipAddress = ipMatch[0];
+          const result = {
+            域名: host,
+            IP地址: ipAddress,
+            解析方式: 'ping命令'
+          };
+          
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `域名解析结果：\n\n${JSON.stringify(result, null, 2)}`,
+              },
+            ],
+          };
+        } catch (error) {
+          throw new Error(`域名解析失败: ${error.message}`);
+        }
+      }
+      
       if (toolName !== 'query_phone_number' && toolName !== 'query_phone_address') {
         throw new Error(`Unknown tool: ${toolName}`);
       }
