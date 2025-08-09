@@ -1,6 +1,6 @@
 {
   "name": "mcp-saorao-phone",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "MCP server for Chinese harassing phone number lookup API",
   "main": "index.js",
   "type": "module",
@@ -11,7 +11,13 @@
     "start": "node index.js",
     "dev": "node --inspect index.js"
   },
-  "keywords": ["mcp", "phone", "harassing", "api", "china"],
+  "keywords": [
+    "mcp",
+    "phone",
+    "harassing",
+    "api",
+    "china"
+  ],
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
