@@ -8,6 +8,60 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import fetch from 'node-fetch';
 import { exec } from 'child_process';
+
+// 简易省份代码映射
+const provinceMap = {
+  11: '北京', 12: '天津', 13: '河北', 14: '山西', 15: '内蒙古',
+  21: '辽宁', 22: '吉林', 23: '黑龙江',
+  31: '上海', 32: '江苏', 33: '浙江', 34: '安徽', 35: '福建', 36: '江西', 37: '山东',
+  41: '河南', 42: '湖北', 43: '湖南',
+  44: '广东', 45: '广西', 46: '海南',
+  50: '重庆', 51: '四川', 52: '贵州', 53: '云南', 54: '西藏',
+  61: '陕西', 62: '甘肃', 63: '青海', 64: '宁夏', 65: '新疆'
+};
+
+// 校验身份证号合法性
+export function validateIdCard(id) {
+  if (!/^\d{17}[\dXx]$/.test(id)) {
+    return { valid: false, message: '格式错误' };
+  }
+  // 校验出生日期
+  const birth = id.substring(6, 14);
+  const year = parseInt(birth.substring(0, 4));
+  const month = parseInt(birth.substring(4, 6));
+  const day = parseInt(birth.substring(6, 8));
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+    return { valid: false, message: '出生日期无效' };
+  }
+  // 校验位计算
+  const weight = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+  const checkCode = ['1','0','X','9','8','7','6','5','4','3','2'];
+  let sum = 0;
+  for (let i = 0; i < 17; i++) sum += parseInt(id[i]) * weight[i];
+  const code = checkCode[sum % 11];
+  if (code !== id[17].toUpperCase()) {
+    return { valid: false, message: '校验位错误' };
+  }
+  return { valid: true };
+}
+
+// 解析身份证信息
+export function parseIdCardInfo(id) {
+  const birthStr = id.substring(6, 14);
+  const birth = `${birthStr.substring(0,4)}-${birthStr.substring(4,6)}-${birthStr.substring(6,8)}`;
+  const gender = parseInt(id[16]) % 2 === 0 ? '女' : '男';
+  const provinceCode = id.substring(0, 2);
+  const region = provinceMap[provinceCode] || '未知';
+  // 年龄
+  const birthDate = new Date(parseInt(birthStr.substring(0,4)), parseInt(birthStr.substring(4,6)) - 1, parseInt(birthStr.substring(6,8)));
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const m = now.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) age--;
+  const checkBit = id[17].toUpperCase();
+  return { birth, gender, region, age, checkBit };
+}
 import { promisify } from 'util';
 
 const execPromise = promisify(exec);
@@ -97,23 +151,13 @@ class SaoraoPhoneServer {
         },
         {
           name: 'query_id_card',
-          description: '根据中国身份证号码查询年龄、性别、出生地等信息',
+          description: '根据中国身份证号码解析基本信息（无需外部API Key）',
           inputSchema: {
             type: 'object',
             properties: {
               idCard: {
                 type: 'string',
                 description: '18位中国居民身份证号码，例如 110101199003070018'
-              },
-              appKey: {
-                type: 'string',
-                description: 'NowAPI提供的appkey，可选，默认为演示key 10003',
-                default: '10003'
-              },
-              sign: {
-                type: 'string',
-                description: 'NowAPI提供的sign，可选，默认为演示sign b59bc3ef6191eb9f747dd4e83c99f2a4',
-                default: 'b59bc3ef6191eb9f747dd4e83c99f2a4'
               }
             },
             required: ['idCard']
@@ -163,36 +207,32 @@ class SaoraoPhoneServer {
       }
 
       if (toolName === 'query_id_card') {
-        const { idCard, appKey = '10003', sign = 'b59bc3ef6191eb9f747dd4e83c99f2a4' } = request.params.arguments;
+        const { idCard } = request.params.arguments;
         if (!/^\d{17}[0-9Xx]$/.test(idCard)) {
           throw new Error('请提供有效的18位身份证号码');
         }
+
         try {
-          const url = `https://sapi.k780.com/?app=idcard.get&idcard=${idCard}&appkey=${appKey}&sign=${sign}&format=json`;
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'User-Agent': 'mcp-saorao-phone/1.0.0',
-            },
-          });
-          if (!response.ok) {
-            throw new Error(`API请求失败: ${response.status}`);
+          // 身份证号码基本信息解析
+          // 验证身份证号码格式
+          const isValid = validateIdCard(idCard);
+          if (!isValid.valid) {
+            throw new Error(`身份证号码无效: ${isValid.message}`);
           }
 
-          const data = await response.json();
-          if (data.success !== '1') {
-            throw new Error(data.msg || '查询失败');
-          }
+          // 从身份证号码中解析信息
+          const info = parseIdCardInfo(idCard);
+
           const result = {
             查询号码: idCard,
-            查询状态: data.result.status,
-            出生日期: data.result.born,
-            性别: data.result.sex,
-            归属地: data.result.att,
-            邮编: data.result.postno,
-            区号: data.result.areano,
-            查询来源: 'NowAPI 身份证信息查询'
+            出生日期: info.birth,
+            性别: info.gender,
+            归属地: info.region,
+            年龄: info.age,
+            校验位: info.checkBit,
+            查询来源: '本地身份证号码规则解析'
           };
+
           return {
             content: [
               {
